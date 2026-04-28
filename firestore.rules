@@ -1,0 +1,96 @@
+rules_version = '2';
+ service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. DENY BY DEFAULT
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- GLOBALS ---
+    function isSignedIn() { return request.auth != null; }
+    function isSuperAdmin() { 
+      return isSignedIn() && 
+             request.auth.token.email == 'tatianasystems409@gmail.com' &&
+             request.auth.token.email_verified == true;
+    }
+    function isAdmin() {
+      return isSignedIn() && (
+        isSuperAdmin() || 
+        request.auth.token.email.matches('.*docente.*') ||
+        request.auth.token.email == 'tatianasystems@gmail.com'
+      );
+    }
+    
+    function isValidId(id) { 
+      return id is string && id.size() <= 64 && id.matches('^[a-zA-Z0-9_\\-]+$'); 
+    }
+    
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+
+    // --- SERVICES SECURITY ---
+    match /services/{serviceId} {
+      allow read: if true;
+      allow write: if isSuperAdmin() && isValidService(incoming());
+      
+      function isValidService(data) {
+        return data.name is string && data.name.size() > 2 && data.name.size() < 100 &&
+               data.price is number && data.price >= 0 &&
+               data.duration is number && data.duration > 0 &&
+               data.category is string &&
+               data.keys().hasAll(['name', 'price', 'duration', 'category']) &&
+               data.keys().size() <= 8;
+      }
+    }
+
+    // --- APPOINTMENTS SECURITY ---
+    match /appointments/{appointmentId} {
+      // Solo el equipo puede ver la lista de citas (Habeas Data)
+      allow get, list: if isAdmin();
+      
+      // Los clientes pueden crear su propia cita
+      allow create: if isValidAppointment(incoming()) && incoming().status == 'pending';
+      
+      // Solo admin cambia estados
+      allow update: if isAdmin() && (
+        incoming().diff(existing()).affectedKeys().hasOnly(['status', 'updatedAt'])
+      );
+      
+      allow delete: if isAdmin();
+
+      function isValidAppointment(data) {
+        return data.serviceId is string &&
+               data.customerName is string && data.customerName.size() > 2 &&
+               data.customerPhone is string && data.customerPhone.size() >= 7 &&
+               data.customerEmail is string && data.customerEmail.matches('^.+@.+$') &&
+               data.totalPrice is number &&
+               data.keys().hasAll(['serviceId', 'customerName', 'customerPhone', 'customerEmail', 'date', 'time', 'status']) &&
+               data.keys().size() <= 12;
+      }
+    }
+
+    // --- INVENTORY SECURITY ---
+    match /inventory/{itemId} {
+      allow read, write: if isAdmin();
+    }
+
+    // --- RATINGS SECURITY ---
+    match /ratings/{ratingId} {
+      allow read: if true;
+      allow create: if isSignedIn() && incoming().rating >= 1 && incoming().rating <= 5;
+      allow delete: if isAdmin();
+    }
+
+    // --- GALLERY SECURITY ---
+    match /salon_gallery/{imageId} {
+      allow read: if true;
+      allow write: if isSuperAdmin();
+    }
+
+    // --- APP SETTINGS SECURITY ---
+    match /app_settings/{settingId} {
+      allow read: if true;
+      allow write: if isSuperAdmin();
+    }
+  }
+}

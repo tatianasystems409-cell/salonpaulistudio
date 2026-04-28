@@ -1,0 +1,98 @@
+{
+  "entities": {
+    "Service": {
+      "title": "Servicio",
+      "description": "Servicios ofrecidos por el salón",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Nombre del servicio" },
+        "description": { "type": "string", "description": "Descripción detallada" },
+        "price": { "type": "number", "description": "Precio en Pesos Colombianos" },
+        "duration": { "type": "number", "description": "Duración en minutos" },
+        "category": { "type": "string", "description": "Categoría del servicio" },
+        "imageUrl": { "type": "string", "description": "URL de la imagen representativa" }
+      },
+      "required": ["name", "price", "duration", "category"]
+    },
+    "Appointment": {
+      "title": "Cita",
+      "description": "Reserva de servicio por un cliente",
+      "type": "object",
+      "properties": {
+        "serviceId": { "type": "string" },
+        "serviceName": { "type": "string" },
+        "date": { "type": "string", "format": "date" },
+        "time": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "confirmed", "completed", "cancelled"] },
+        "customerName": { "type": "string" },
+        "customerEmail": { "type": "string" },
+        "customerPhone": { "type": "string" },
+        "totalPrice": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["serviceId", "date", "time", "customerName", "customerEmail", "customerPhone"]
+    },
+    "InventoryItem": {
+      "title": "Producto de Inventario",
+      "description": "Insumos y productos del estudio",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "brand": { "type": "string", "description": "Marca o norma de calidad" },
+        "category": { "type": "string" },
+        "quantity": { "type": "number" },
+        "minQuantity": { "type": "number" },
+        "unit": { "type": "string" },
+        "imageUrl": { "type": "string" },
+        "lastUpdated": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "quantity"]
+    },
+    "AppSettings": {
+      "title": "Ajustes de Aplicación",
+      "description": "Configuración visual y de marca",
+      "type": "object",
+      "properties": {
+        "heroTitle": { "type": "string" },
+        "heroSlogan": { "type": "string" },
+        "heroDescription": { "type": "string" },
+        "heroImage": { "type": "string" },
+        "salonLogo": { "type": "string" },
+        "campaignMonth": { "type": "string" },
+        "campaignTitle": { "type": "string" },
+        "campaignMeaning": { "type": "string" },
+        "campaignImage": { "type": "string" },
+        "showCampaign": { "type": "boolean" },
+        "emailBanner": { "type": "string" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      }
+    }
+  },
+  "firestore": {
+    "/services/{serviceId}": {
+      "schema": "Service",
+      "description": "Catálogo de servicios"
+    },
+    "/appointments/{appointmentId}": {
+      "schema": "Appointment",
+      "description": "Registro de citas agendadas"
+    },
+    "/inventory/{itemId}": {
+      "schema": "InventoryItem",
+      "description": "Control de insumos"
+    },
+    "/salon_gallery/{imageId}": {
+      "schema": "object",
+      "description": "Fotos reales del salón"
+    },
+    "/app_settings/general": {
+      "schema": "AppSettings",
+      "description": "Configuración general del sitio (hero, slogan, etc)"
+    },
+    "/ratings/{ratingId}": {
+      "schema": "object",
+      "description": "Reseñas de clientes"
+    }
+  }
+}

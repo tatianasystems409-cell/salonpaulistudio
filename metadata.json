@@ -1,0 +1,6 @@
+{
+  "name": "Paulis Studio - Salón de Belleza",
+  "description": "Plataforma interactiva para agendamiento de citas y catálogo de servicios de Paulis Studio en Tunja, Boyacá.",
+  "requestFramePermissions": ["geolocation"],
+  "majorCapabilities": []
+}
